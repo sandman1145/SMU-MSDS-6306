@@ -1,0 +1,110 @@
+###1.  GitHub Cloning (20 points): Using Git, clone the following GitHub repository to your local machine: https://github.com/caesar0301/awesome-public-datasets. In RMarkdown, please show the code (commented out, as it's not R syntax) that you used to create a new directory, navigate to the appropriate directory, and clone the repository to it. One Git command per line, please.
+
+```
+<!-- Navigating to the appropriate directory --> 
+sojha@71F5M32 MINGW64 ~
+$ cd ~/Desktop/
+
+sojha@71F5M32 MINGW64 ~/Desktop
+<!-- Cloning the repo into my desktop repo --> 
+$ git clone https://github.com/caesar0301/awesome-public-datasets
+Cloning into 'awesome-public-datasets'...
+remote: Enumerating objects: 21, done.
+remote: Counting objects: 100% (21/21), done.
+remote: Compressing objects: 100% (9/9), done.
+remote: Total 1758 (delta 12), reused 21 (delta 12), pack-reused 1737
+Receiving objects: 100% (1758/1758), 661.01 KiB | 43.00 KiB/s, done.
+Resolving deltas: 100% (1047/1047), done.
+
+
+<!-- Navigating to the directory to look at the content --> 
+sojha@71F5M32 MINGW64 ~/Desktop
+$ cd awesome-public-datasets
+
+sojha@71F5M32 MINGW64 ~/Desktop/awesome-public-datasets (master)
+$ ls
+Datasets/  LICENSE  README.rst
+```
+###2a. In R, please read in titanic.csv via either read.table() or read.csv(), assigning it to df. This dataset follows the passengers aboard the Titanic, including their fees paid, rooms rented, and survivorship status.
+
+
+```{r}
+getwd()
+titanic <- read.csv("titanic.csv",TRUE,",")
+class(titanic)
+```
+
+###2b. Output the respective count of females and males aboard the Titanic. Plot the frequency of females and males. Be sure to give an accurate title and label the axes.
+
+```{r}
+as.data.frame(table(titanic$Sex))
+plot(titanic$Sex,ylab = "Frequency",main="Frequency of females and males")
+```
+
+###2c. Please use one apply function (to review: swirl() modules 11, 12) to output the means of Age, Fare, and Survival. Make sure the output is a real number for all three means.
+
+```{r}
+tapply(titanic$Age,titanic$Survived,mean, na.rm=TRUE)
+```
+
+###3. You research sleep and just got your first data set. Later,you'll have another dataset with the same column names, so you want to create a helper function that you can analyze this dataset and the next. Load sleep_data_01.csv (found at http://talklab.psy.gla.ac.uk/L1_labs/lab_1/homework/index.html). 
+
+```{r}
+sleep <- read.csv("sleep_data_01.csv",TRUE,",")
+sleepfunction <-function(report){
+MedianAge <- median(sleep$Age,na.rm = TRUE)
+minsleep <- min(sleep$Duration,na.rm = TRUE)
+maxsleep <- max(sleep$Duration,na.rm = TRUE)
+meanrses <-mean(sleep$RSES,na.rm=TRUE)
+sdrses <- sd(sleep$RSES,na.rm = TRUE)
+return(data.frame(MedianAge = MedianAge/5,SelfEsteem = meanrses/5,SE_SD = sdrses,DurationRange = maxsleep - minsleep))
+ }
+sleepfunction()
+Report<-sleepfunction()
+round(Report,digits = 2)
+```
+
+###4. FiveThirtyEight Data
+
+```{r}
+library(fivethirtyeight)
+the538sets <-data(package = "fivethirtyeight")
+df <-get(the538sets$results[22,"Item"])
+dim(df)
+colnames(df)
+```
+
+vignette("fivethirtyeight", package = "fivethirtyeight")
+
+###5a. Write an R command that gives you the column names of the data frame. Right after that, write one that counts the number of columns but not rows.
+
+```{r}
+colnames(df)
+ncol(df)
+```
+
+###5b. Generate a count of each unique major_category in the data frame. I recommend using libraries to help. To be clear, this should look like a matrix or data frame containing the major_category and the frequency it occurs in the dataset. Assign it to major_count.
+
+```{r}
+major_count <-as.data.frame(table(df$major_category))
+major_count
+```
+
+
+###5c. To make things easier to read, put par(las=2) before your plot to make the text perpendicular to the axis. Make a barplot of major_count. Make sure to label the title with something informative (check the vignette if you need), label the x and y axis, and make it any color other than grey. Assign the major_category labels to their respective bar. Flip the barplot horizontally so that bars extend to the right, not upward. All of these options can be done in a single pass of barplot()
+
+```{r}
+par(las=2)
+barplot(major_count$Freq, mainlab= "Major Category Breakdown", xlab= "Major", ylab= "Frequency",
+names.arg= major_count$Var1,col =  rainbow(3),horiz = TRUE)
+```
+
+###5d. Write the fivethirtyeight data to a csv file. Make sure that it does not have row labels.
+
+`write.csv(df, "fivethirtyeight.csv", row.names=FALSE)`
+
+###6. In your RMarkdown script, please provide the link to this GitHub so the grader can see it.
+
+https://github.com/sandman1145/SMU-MSDS-6306.git
+
+##THE END
