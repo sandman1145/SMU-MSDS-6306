@@ -1,0 +1,47 @@
+###1.  Harry Potter Cast
+
+
+```{r message=FALSE, warning=FALSE}
+
+library(rvest)
+library(tidyr)
+library(humaniformat)
+HP <- read_html("https://www.imdb.com/title/tt1201607/fullcredits?ref_=tt_ql_1")
+cast<-HP %>% html_nodes("table") %>% .[[3]] %>% html_table()
+cast$X1<-NULL
+cast$X3<-NULL
+cast <-sapply(cast,function(x) {gsub("[\r\n]","",x)})
+cast<-as.data.frame(cast)
+cast<-cast[!grepl("Rest of cast listed alphabetically:",cast$X2),]
+cast <-cast[-1,]
+colnames(cast)<-c("Actor","Character")
+cast <-as.data.frame(sapply(cast,function(x) {gsub("\\s+"," ",x)}))
+firstname <-first_name(cast$Actor)
+middlename <-middle_name(cast$Actor)
+middlename[is.na(middlename)]<- ""
+lastname<-last_name(cast$Actor)
+first <- paste(firstname,middlename)
+finallist<-data.frame("Firstname" = first,"LastName" = lastname,"Character" = cast$Character)
+head(finallist,10)
+```   
+
+###2.  SportsBall
+
+```{r message=FALSE, warning=FALSE}
+library(rvest)
+library(tidyr)
+library(ggplot2)
+spurs <-read_html("http://www.espn.com/nba/team/stats/_/name/sa/san-antonio-spurs")
+spurs_players <-spurs %>% html_nodes("table") %>% .[[6]] %>% html_table()
+spurs_stats <-spurs %>% html_nodes("table") %>% .[[8]] %>% html_table()
+players_stats <-data.frame("player" = spurs_players,"stats" = spurs_stats)
+final <- players_stats %>% separate(Name,into=c("player","position"),sep = -2) 
+final<-final[!grepl(c("Tot"),final$player),]
+final <- data.frame(final[,1:2],sapply(final[,3:ncol(final)],as.numeric))
+p<-ggplot(final,aes(x=final$player, y = final$stats.FG.,color=final$position)) + geom_point() + theme(axis.text.x=element_text(size=10,angle=90))
+pp <- p + ggtitle("Field Goal % by Player") + xlab("Players") + ylab("FG%")
+ppp <- pp + ggtitle("Field Goal % By Player by Position") + theme(plot.title=element_text(hjust=0.5))
+ppp + theme(legend.position="none")
+```
+
+##THE END
