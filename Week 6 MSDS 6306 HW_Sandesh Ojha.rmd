@@ -19,10 +19,9 @@ unique(mh2015_puf$LST)
 
 ```{r message=FALSE, warning=FALSE}
 df <- as.data.frame(table(mh2015_puf$LST))
-df2<- df[-c(2,4,14,8,2,42),]
-names(df2)[names(df2) == "Var1"] <- "Statecode"
+df2<- df[-c(2,4,13,14,8,2,42,50),]
+names(df2)[names(df2) == "Var1"] <- "Abbrev"
 names(df2)[names(df2) == "Freq"] <- "Centers"
-df2
 ```   
 
 #####d. Create a ggplot barchart of this filtered data set. Vary the bar's colors by what State it has listed. Give it an appropriately professional title that is centered. Make sure you have informative axis labels. The State axis should be readable, not layered over each other. You're welcome to have a legend or not.
@@ -30,7 +29,7 @@ df2
 
 ```{r, fig.width=20, fig.height=12} 
 library(ggplot2)
- r <- ggplot(data=df2,aes(x=Statecode,y=Centers,fill=Statecode))+ geom_bar(stat="identity",width= 0.5)+ theme(axis.text.x=element_text(angle=45)) + theme(legend.position = "none")
+ r <- ggplot(data=df2,aes(x=Abbrev,y=Centers,fill=Abbrev))+ geom_bar(stat="identity",width= 0.5)+ theme(axis.text.x=element_text(angle=45)) + theme(legend.position = "none")
  r + ggtitle ("Mental Health Centers by State") + theme(plot.title = element_text(color = "Blue",size = 16,face= "bold",hjust = 0.5)) 
 ```
 
@@ -42,14 +41,45 @@ df3 <- read.csv(file="C:/Users/sojha.WVOFFICE.000/Documents/SMU/Summer 2019/Doin
 
 #####a. This graph (1D) might be somewhat misleading, as bigger states may have more hospitals, but could be more sparsely located. Read statesize.csv into your R environment. This contains essentially a vector of square miles for each state. In trying to merge it with your data.frame() from 1C, you find that they don't match. Use paste() on your LST column in 1C to see what the matter is, and write what you observe in a comment.
 
-When you combine 2 data frames, the column type has to be the same for the merge to work properly. 
+```{r message=FALSE, warning=FALSE}
+paste(df2$Abbrev)
+```
+The states abbrev in statesize have extra spaces at the end so they won't merge.
 
 #####b. Correct the problem with the LST column using any method in R that is programmatic and easily understandable. Once you have made these state abbreviations identical to statesize.csv's Abbrev column, merge the data.frame() from 1C and statesize.csv in order to add size information.
 
 
 
+```{r message=FALSE, warning=FALSE}
+df2$Abbrev <- strtrim(df2$Abbrev,2)
+MergedDF <- merge(x=df3,y=df2,by.x="Abbrev",by.y="Abbrev")
+MergedDF
+```
 
-https://github.com/sandman1145/SMU-MSDS-6306.git
+#####c.  Calculate a new variable in your combined data.frame() which indicates the VA hospitals per thousand square miles.
+```{r message=FALSE, warning=FALSE}
+MergedDF$CountPerKMiles = MergedDF$Centers / (MergedDF$SqMiles / 1000)
+MergedDF$CountPerKMiles
+```
+
+#####d.  Create another ggplot which considers the VAs per square thousand miles, rather than just frequency. . Make sure the State axis is readable, like before. Change the title and axes as appropriate.
+
+```{r, fig.width=20, fig.height=12}
+ggplot(data=MergedDF,aes(x=reorder(Abbrev,CountPerKMiles),y=CountPerKMiles,fill=Region)) + geom_bar(stat="identity",show.legend = TRUE) + labs(x="State",y="VA Per 1000 Miles",title="VA Hospitals Per 1000 Miles") + theme(plot.title=element_text(hjust = 0.5))+scale_fill_brewer(palette="Dark2")
+```
+
+#####e.  What patterns do you see? By this metric, is there any region that seems relatively high for VA medical centers per thousand square miles? How about low? Given these data, what advice might you give your boss before you start modeling (and why)?
+
+
+There are alot of smaller states with alot of VA hospitals like Rode Island which has the most.
+There are not alot of VA hospitals in West but Northeast has the highest out of the 4 regions.
+
+
+**Recomendation** : Because of West Region not having alot of VA hospitals, recommendation to build significantly more in that region to provide care and support for the Veterans.**
+
+
+
+https://github.com/sandman1145/SMU-MSDS-6306/tree/Homework
 
 
 ##THE END
