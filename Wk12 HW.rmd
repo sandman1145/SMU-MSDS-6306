@@ -1,0 +1,124 @@
+---
+title: "DS6306 - HW12"
+author: "Sandesh Ojha"
+date: "August 5, 2019"
+output: 
+  html_document:
+  keep_md: True
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+#Preinstall libraries used in this homework assignment
+#install.packages("tidyverse")
+library(ggplot2)
+library(dplyr)
+```
+####Question 1a
+```{r}
+# Looking at the DAX index in the EuStockMarket internal R Dat and reviewing the file structure and understanding the data by looking at the help
+#help(EuStockMarkets)
+str(EuStockMarkets[,"DAX"])
+```
+
+####Question 1b
+```{r,fig.width=15}
+#Ploting the data and making the line blue and plotting a vertical line in 1997 and giving it a title
+plot(EuStockMarkets[,"DAX"],ylab="DAX Index Price",xlab = "Year",main="DAX Index Price by Year",col="blue")
+abline(v=1997, col="red")
+```
+
+####Question 1c
+```{r,fig.width=15}
+#Decompose the time series into it's component parts. Graph those component parts keeping the lines blue and vertical red line at 1997
+DComp <- decompose(EuStockMarkets[,"DAX"], type="mult")
+plot(DComp,col="blue")
+abline(v=1997, col="red")
+```
+
+####Question 2a
+```{r message=FALSE, warning=FALSE}
+#Loading and reviewing the help for fpp2 data
+#install.packages("fpp2")
+library(fpp2)
+#help(fpp2) 
+#help(maxtemp)
+```
+
+####Question 2b
+```{r}
+#Eliminating unwanted information since we are only concerned with info after 1990
+maxtemp1990 = window(maxtemp,start=1990)
+```
+
+####Question 2c
+```{r,fig.width=10}
+#Modeling to forecast maximum temparature from 1990 to 2021
+ses.ss = ses(maxtemp1990)
+#plot the fit, the predicted model
+plot(ses.ss, main="Temperature from SES Model",xlim=c(1990,2021),xlab="Year",ylab="Temperature (C)")
+lines(fitted(ses.ss),col="blue")
+#Finding the AICc of this fitted model
+ses.ss$model
+```
+
+####Question 2d
+```{r, fig.width=10}
+#Use a damped Holt's model on the data
+ses.holt = holt(maxtemp1990,initial="optimal",damped=TRUE,h=6)
+#plot the model
+plot(ses.holt,xlim=c(1990,2021),main="Temperature prediction from Damped Holt's Model",xlab="Year",ylab="Temp (C)")
+lines(fitted(ses.holt),col="blue")
+#Finding the AICc of this fitted model
+ses.holt$model
+```
+
+####Question 2e
+SES model has a lower AICc at 141 vs 145 for the Holt.  We want the model with the lower AICc score, so the SES model is better.
+
+####Question 3a
+```{r message=FALSE, warning=FALSE}
+#install.packages("xts")
+#install.packages("dygraphs")
+library(xts)
+library(dygraphs)
+#set path for working directory
+filepath = "C:\\Users\\sojha.WVOFFICE.000\\Documents\\SMU\\Summer 2019\\Doing Data Science\\HW12_2_2_2"
+setwd(filepath)
+#load the data files
+dfG = read.csv("Unit12TimeSeries_Gregorovitch.csv",stringsAsFactors = FALSE)
+dfO = read.csv("Unit12TimeSeries_Ollivander.csv",stringsAsFactors=FALSE)
+#Add headers to the dataframes
+names(dfG) = c("Date","Wands")
+names(dfO) = c("Date","Wands")
+```
+
+####Question 3b
+```{r}
+#Converting the dates to actual date format from string
+dfG$Date = as.Date(dfG$Date,"%m/%d/%Y")
+dfO$Date = as.Date(dfO$Date,"%m/%d/%Y")
+```
+
+####Question 3c
+```{r}
+#Converted the dataframes to an xts object.
+xtsG = xts(dfG$Wands,order.by=dfG$Date)
+xtsO = xts(dfO$Wands,order.by=dfO$Date)
+```
+
+####Question 3d
+```{r,fig.width=10}
+#Binding the xts objects
+xtsC = merge(xtsG,xtsO)
+#Updating the object names
+names(xtsC) = c("Gregorovitch","Ollivander")
+
+#Graph
+dygraph(xtsC,main="Wands By Year") %>% dyAxis("y", label="Number of Wands") %>% dyAxis("x", label="Year") %>%dySeries("Gregorovitch", color="pink") %>% dySeries("Ollivander", color="yellow") %>% dyOptions(stackedGraph=TRUE) %>% dyRangeSelector(height=50) %>%  dyHighlight(highlightCircleSize = 5,highlightSeriesBackgroundAlpha = 0.2,hideOnMouseOut = TRUE) %>% dyShading(from="1995-01-01", to="1999-01-01", color="grey")
+```
+
+https://github.com/sandman1145/SMU-MSDS-6306/tree/Homework
+
+
+##THE END
